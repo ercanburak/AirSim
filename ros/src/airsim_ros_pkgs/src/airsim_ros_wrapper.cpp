@@ -34,6 +34,7 @@ AirsimROSWrapper::AirsimROSWrapper(const ros::NodeHandle& nh, const ros::NodeHan
     host_ip_(host_ip),
     airsim_client_images_(host_ip),
     airsim_client_lidar_(host_ip),
+    airsim_settings_parser_(host_ip),
     tf_listener_(tf_buffer_)
 {
     ros_clock_.clock.fromSec(0);
@@ -68,7 +69,7 @@ void AirsimROSWrapper::initialize_airsim()
         }
         else
         {
-            airsim_client_ = std::move(std::unique_ptr<msr::airlib::RpcLibClientBase>(new msr::airlib::CarRpcLibClient(host_ip_)));
+            airsim_client_ = std::unique_ptr<msr::airlib::RpcLibClientBase>(new msr::airlib::CarRpcLibClient(host_ip_));
         }
         airsim_client_->confirmConnection();
         airsim_client_images_.confirmConnection();

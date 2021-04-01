@@ -771,13 +771,13 @@ sensor_msgs::PointCloud2 AirsimROSWrapper::get_lidar_msg_from_airsim(const msr::
 
         lidar_msg.is_dense = true; // todo
         std::vector<float> data_std;
-        data_std.resize(lidar_msg.row_step * lidar_msg.height);        
         for(size_t i = 0; i < lidar_msg.width; i++){
             data_std.push_back(lidar_data.point_cloud[3*i]);
             data_std.push_back(lidar_data.point_cloud[3*i+1]);
             data_std.push_back(lidar_data.point_cloud[3*i+2]);
-            data_std.push_back(60);
+            data_std.push_back(60.0);
         }
+
         const unsigned char* bytes = reinterpret_cast<const unsigned char*>(data_std.data());
         vector<unsigned char> lidar_msg_data(bytes, bytes + sizeof(float) * data_std.size());
         lidar_msg.data = std::move(lidar_msg_data);
@@ -1401,8 +1401,12 @@ void AirsimROSWrapper::lidar_timer_cb(const ros::TimerEvent& event)
                 for (auto& lidar_publisher : vehicle_name_ptr_pair.second->lidar_pubs)
                 {
                     auto lidar_data = airsim_client_lidar_.getLidarData(lidar_publisher.sensor_name, vehicle_name_ptr_pair.first);
-                    sensor_msgs::PointCloud2 lidar_msg = get_lidar_msg_from_airsim(lidar_data, vehicle_name_ptr_pair.first);
-                    lidar_publisher.publisher.publish(lidar_msg);
+                    if (lidar_data.point_cloud.size() > 3)
+                    {
+                        sensor_msgs::PointCloud2 lidar_msg = get_lidar_msg_from_airsim(lidar_data, vehicle_name_ptr_pair.first);
+                        lidar_publisher.publisher.publish(lidar_msg);    
+                    }
+                    
                 }
             }
         }
